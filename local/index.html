@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <a href="../" class="back-btn">⬅ Quay lại</a>
   <header>
     <h1>🎮 OTTv2 — Oẳn Tù Tì v2</h1>
     <p>Bàn cờ 9x9 · Búa – Bao – Kéo · Đi như quân Vua · 2 người chơi cùng máy</p>
@@ -23,7 +24,10 @@
           <span class="dot P1"></span> Lượt của <b>Người chơi 1</b>
         </div>
         <div class="winner-banner" id="winnerBanner"></div>
-        <button class="reset" id="resetBtn">🔄 Ván mới</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="reset" id="surrenderBtn" style="background: #e53e3e;">🏳 Đầu hàng</button>
+          <button class="reset" id="resetBtn">🔄 Ván mới</button>
+        </div>
       </div>
 
       <div class="panel">

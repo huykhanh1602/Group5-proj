@@ -38,11 +38,20 @@ function paramRoom() {
 
 roomInput.value = paramRoom() || "phong1";
 
+const surrenderBtn = document.getElementById("surrenderBtn");
+
 joinBtn.addEventListener("click", () => connect(roomInput.value.trim() || "phong1"));
 resetBtn.addEventListener(
     "click",
     () => ws && ws.readyState === 1 && ws.send(JSON.stringify({ type: "reset" })),
 );
+surrenderBtn.addEventListener("click", () => {
+    if (state.winner) return;
+    if (myRole !== 'P1' && myRole !== 'P2') return;
+    if (confirm(`Xác nhận đầu hàng?`)) {
+        if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "surrender" }));
+    }
+});
 
 // --- Địa chỉ WebSocket server -------------------------------------------
 // UI và server có thể nằm ở 2 host khác nhau (UI trên Vercel, server trên
@@ -268,7 +277,9 @@ function renderTurn() {
         const reasonText =
             state.winReason === "corner"
                 ? "đưa quân vào ô đích (a1/i9)"
-                : "ăn sạch một loại quân của đối phương";
+                : state.winReason === "surrender"
+                  ? "đối phương đầu hàng"
+                  : "ăn sạch một loại quân của đối phương";
         winnerBanner.textContent = `🏆 ${state.winner} THẮNG — ${reasonText}!`;
         winnerBanner.classList.add("show");
     } else {
@@ -301,10 +312,14 @@ function renderLog() {
     moveLog.innerHTML = "";
     state.history.forEach((m, i) => {
         const line = document.createElement("div");
-        const capText = m.captured
-            ? ` (ăn ${TYPE_LABEL[m.captured.type]} của ${m.captured.owner})`
-            : "";
-        line.textContent = `${i + 1}. ${m.mover}: ${m.from} → ${m.to}${capText}`;
+        if (m.type === "surrender") {
+            line.textContent = `${i + 1}. ${m.mover} đã đầu hàng 🏳`;
+        } else {
+            const capText = m.captured
+                ? ` (ăn ${TYPE_LABEL[m.captured.type]} của ${m.captured.owner})`
+                : "";
+            line.textContent = `${i + 1}. ${m.mover}: ${m.from} → ${m.to}${capText}`;
+        }
         moveLog.appendChild(line);
     });
 }

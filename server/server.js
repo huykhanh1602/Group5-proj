@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { WebSocketServer } from 'ws';
 import {
-  createInitialState, applyMove, strToPos, posToStr,
+  createInitialState, applyMove, applySurrender, strToPos, posToStr,
 } from '../shared/gameLogic.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -136,6 +136,22 @@ wss.on('connection', (ws, req) => {
       if (ws._role !== 'P1' && ws._role !== 'P2') return;
       room.state = createInitialState();
       broadcast(room, roomId);
+      return;
+    }
+
+    if (msg.type === 'surrender') {
+      if (ws._role !== 'P1' && ws._role !== 'P2') {
+        return send(ws, { type: 'error', message: 'Khán giả không thể đầu hàng.' });
+      }
+      if (room.state.winner) {
+        return send(ws, { type: 'error', message: 'Ván đấu đã kết thúc.' });
+      }
+      try {
+        room.state = applySurrender(room.state, ws._role);
+        broadcast(room, roomId);
+      } catch (err) {
+        send(ws, { type: 'error', message: err.message });
+      }
       return;
     }
   });
