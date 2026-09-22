@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <a href="../" class="back-btn">⬅ Quay lại</a>
   <header>
     <h1>🎮 OTTv2 — Oẳn Tù Tì v2 <small style="font-size:0.9rem;color:#93a1b6;">(Multiplayer · playhtml.fun)</small></h1>
     <p>Bàn cờ 9x9 · Búa – Bao – Kéo · Đi như quân Vua · Đồng bộ real-time bằng playhtml.fun</p>
@@ -27,7 +28,10 @@
       <div class="panel">
         <div class="turn-indicator" id="turnIndicator">Đang kết nối playhtml...</div>
         <div class="winner-banner" id="winnerBanner"></div>
-        <button class="reset" id="resetBtn">🔄 Yêu cầu ván mới</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="reset" id="surrenderBtn" style="background: #e53e3e;">🏳 Đầu hàng</button>
+          <button class="reset" id="resetBtn">🔄 Yêu cầu ván mới</button>
+        </div>
       </div>
 
       <div class="panel">

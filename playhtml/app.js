@@ -154,7 +154,9 @@ function renderTurn() {
     turnIndicator.textContent = 'Ván đấu kết thúc';
     const reasonText = state.winReason === 'corner'
       ? 'đưa quân vào ô đích (a1/i9)'
-      : 'ăn sạch một loại quân của đối phương';
+      : state.winReason === 'surrender'
+        ? 'đối phương đầu hàng'
+        : 'ăn sạch một loại quân của đối phương';
     winnerBanner.textContent = `🏆 ${state.winner} THẮNG — ${reasonText}!`;
     winnerBanner.classList.add('show');
   } else {
@@ -187,11 +189,15 @@ function renderCounts() {
 function renderLog() {
   moveLog.innerHTML = '';
   state.history.forEach((m, i) => {
-    const line    = document.createElement('div');
-    const capText = m.captured
-      ? ` (ăn ${G.TYPE_LABEL[m.captured.type]} của ${m.captured.owner})`
-      : '';
-    line.textContent = `${i + 1}. ${m.mover}: ${m.from} → ${m.to}${capText}`;
+    const line = document.createElement('div');
+    if (m.type === 'surrender') {
+      line.textContent = `${i + 1}. ${m.mover} đã đầu hàng 🏳`;
+    } else {
+      const capText = m.captured
+        ? ` (ăn ${G.TYPE_LABEL[m.captured.type]} của ${m.captured.owner})`
+        : '';
+      line.textContent = `${i + 1}. ${m.mover}: ${m.from} → ${m.to}${capText}`;
+    }
     moveLog.appendChild(line);
   });
 }
@@ -273,6 +279,30 @@ resetBtn.addEventListener('click', () => {
     draft.lastMove  = fresh.lastMove;
     draft.history   = fresh.history;
   });
+});
+
+const surrenderBtn = document.getElementById('surrenderBtn');
+surrenderBtn.addEventListener('click', () => {
+  const myRole = getRoleOf(state, myPid);
+  if (state.winner) return;
+  // Trong chế độ playhtml, cho phép người dùng click Đầu hàng nếu đang là P1, P2 (hoặc cả hai ở hotseat local)
+  const effectiveRole = myRole === 'spectator' ? state.turn : myRole;
+  if (confirm(`Xác nhận đầu hàng?`)) {
+    game.setData((draft) => {
+      const snapshot = structuredClone({
+        board: draft.board, turn: draft.turn,
+        winner: draft.winner, winReason: draft.winReason,
+        lastMove: draft.lastMove, history: draft.history,
+      });
+      const next = G.applySurrender(snapshot, effectiveRole);
+      draft.board     = next.board;
+      draft.turn      = next.turn;
+      draft.winner    = next.winner;
+      draft.winReason = next.winReason;
+      draft.lastMove  = next.lastMove;
+      draft.history   = next.history;
+    });
+  }
 });
 
 // ========== Render ngay lập tức (không chờ playhtml) ====================
