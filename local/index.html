@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OTTv2 - Oẳn Tù Tì Cờ Vua (2 người chơi)</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🎮 OTTv2 — Oẳn Tù Tì v2</h1>
+    <p>Bàn cờ 9x9 · Búa – Bao – Kéo · Đi như quân Vua · 2 người chơi cùng máy</p>
+  </header>
+
+  <div class="layout">
+    <div class="board-wrap">
+      <div class="board-coords" id="boardCoords"></div>
+    </div>
+
+    <div class="sidebar">
+      <div class="panel">
+        <div class="turn-indicator" id="turnIndicator">
+          <span class="dot P1"></span> Lượt của <b>Người chơi 1</b>
+        </div>
+        <div class="winner-banner" id="winnerBanner"></div>
+        <button class="reset" id="resetBtn">🔄 Ván mới</button>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin-top:0;">Quân cờ còn lại</h3>
+        <div class="pieces-count" id="piecesCount"></div>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin-top:0;">Luật chơi</h3>
+        <div class="rules">
+          ✊ Búa thắng ✌️ Kéo · ✌️ Kéo thắng ✋ Bao · ✋ Bao thắng ✊ Búa.<br/>
+          Mỗi quân đi 1 ô theo 8 hướng (như Vua).<br/>
+          Quân cùng loại KHÔNG ăn được nhau, chỉ chặn đường.<br/>
+          Thắng nếu: ăn sạch 1 loại quân của đối phương, hoặc đưa quân vào ô
+          <b>a1</b> / <b>i9</b> (ô có viền vàng ★).
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin-top:0;">Lịch sử nước đi</h3>
+        <div class="log" id="moveLog"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="game.js"></script>
+</body>
+</html>
