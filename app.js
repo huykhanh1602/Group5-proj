@@ -1,4 +1,4 @@
-import { initialState, canMove, move, replay, ICON, LABEL, TYPES, coord } from './game.js';
+import { initialState, canMove, move, replay, ICON, LABEL, TYPES, BASES, coord } from './game.js';
 const $ = id => document.getElementById(id);
 const team = side => side === 0 ? 'Xanh' : 'Cam';
 let game = initialState(), selected = null, channel = null, shared = null, connected = false;
@@ -25,8 +25,15 @@ function render() {
     const p = game.board[i], button = document.createElement('button');
     button.className = `cell ${(Math.floor(i / 9) + i % 9) % 2 ? 'dark' : ''} ${selected === i ? 'selected' : ''} ${selected !== null && canMove(game, selected, i) ? 'legal' : ''}`;
     button.dataset.index = i;
+    const baseSide = BASES.indexOf(i);
+    if (baseSide >= 0) {
+      button.classList.add('base', `base-${baseSide}`);
+      const marker = document.createElement('span');
+      marker.className = 'base-marker'; marker.textContent = '⚑';
+      marker.setAttribute('aria-hidden', 'true'); button.append(marker);
+    }
     button.disabled = online && (!connected || !shared?.seats.every(Boolean) || mySide() !== game.turn);
-    button.setAttribute('aria-label', `${coord(i)}${p ? `, ${LABEL[p.type]} đội ${team(p.side)}` : ', ô trống'}`);
+    button.setAttribute('aria-label', `${coord(i)}${p ? `, ${LABEL[p.type]} đội ${team(p.side)}` : ', ô trống'}${baseSide >= 0 ? `, ô bảo vệ đội ${team(baseSide)}` : ''}`);
     button.setAttribute('aria-pressed', String(selected === i));
     if (i % 9 === 0) { const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = 9 - Math.floor(i / 9); button.append(rank); }
     if (p) { const piece = document.createElement('span'); piece.className = `piece side-${p.side} ${p.type}`; piece.textContent = ICON[p.type]; button.append(piece); }
@@ -107,7 +114,7 @@ if (room) {
   try {
     const { playhtml } = await Promise.race([import('https://unpkg.com/playhtml@2.14.1/dist/playhtml.es.js'), new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))]);
     await Promise.race([playhtml.init({ room: `group5-ottv2-${room}`, onError: fail }), new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))]);
-    channel = playhtml.createPageData('ott-v2-operations-v2', {});
+    channel = playhtml.createPageData('ott-v2-operations-v3', {});
     const update = log => { shared = replay(log); if (mode === 'online') { game = shared.game; selected = null; } render(); };
     connected = true; channel.onUpdate(update); update(channel.getData());
     render();

@@ -1,6 +1,7 @@
 export const TYPES = ['rock', 'scissors', 'paper'];
 export const LABEL = { rock: 'Đấm', scissors: 'Kéo', paper: 'Bao' };
 export const ICON = { rock: '✊', scissors: '✌', paper: '✋' };
+export const BASES = [72, 8]; // Xanh: a1; Cam: i9.
 export const coord = i => 'abcdefghi'[i % 9] + (9 - Math.floor(i / 9));
 export function initialState() {
   const board = Array(81).fill(null);
@@ -24,7 +25,10 @@ export function move(state, from, to) {
   next.board[to] = piece; next.board[from] = null; next.ply++;
   next.history.push({ side: piece.side, text: `${LABEL[piece.type]} ${coord(from)} → ${coord(to)}${captured ? ` · ăn ${LABEL[captured.type]}` : ''}` });
   const missing = TYPES.find(type => !next.board.some(p => p && p.side !== piece.side && p.type === type));
-  if (missing) { next.winner = piece.side; next.reason = `Đối thủ đã hết quân ${LABEL[missing]}`; }
+  if (to === BASES[1 - piece.side]) {
+    next.winner = piece.side;
+    next.reason = `${LABEL[piece.type]} đã chiếm ô bảo vệ ${coord(to)} của đối phương`;
+  } else if (missing) { next.winner = piece.side; next.reason = `Đối thủ đã hết quân ${LABEL[missing]}`; }
   next.turn = 1 - state.turn;
   return next;
 }
