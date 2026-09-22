@@ -54,52 +54,12 @@ Chọn **1. Cùng một máy**. Người chơi 1 cầm Xanh, người chơi 2 c�
 
 Kiểm thử bổ sung khi triển khai: mở trình duyệt thứ ba để xem, thử phòng khác, tải lại và kiểm tra trên các máy qua Internet.
 
-## Triển khai lên Vercel
-
-Trang là site tĩnh thuần, **không cần backend**: Vercel chỉ phục vụ bốn file
-`index.html`, `style.css`, `app.js`, `game.js`. Phần đồng bộ trực tuyến do dịch vụ
-công cộng của playhtml đảm nhiệm, không phải server của nhóm.
-
-### Chuẩn bị
-
-```sh
-npm test        # 6 bài kiểm tra luật chơi phải đạt
-npm run build   # gom 4 file công khai vào dist/
-```
-
-`npm run build` chỉ copy bốn file công khai vào `dist/` rồi tự kiểm tra lại, nên
-`server.mjs`, `game.test.js`, `package.json`, `README.md` **không** bị publish lên
-web — giữ đúng whitelist trong `server.mjs`.
-
-### Đưa lên Vercel
-
-1. Push mã nguồn lên GitHub.
-2. Vercel → **Add New Project** → import repository.
-3. Framework Preset: **Other**. Không cần sửa Build Command hay Output Directory
-   vì `vercel.json` đã khai báo `node scripts/build.mjs` và `dist`.
-4. **Deploy**. Không cần đặt biến môi trường nào.
-
-### Lưu ý khi chơi trực tuyến
-
-- **Hai người phải dùng đúng cùng một hostname.** playhtml phân tách dữ liệu theo
-  hostname, nên nếu một người dùng link preview của Vercel còn người kia dùng
-  domain production thì hai người vào hai phòng khác nhau dù mã phòng giống nhau.
-  Hãy thống nhất dùng domain production, hoặc gắn domain riêng và gửi đúng link đó.
-- **Phía người chơi cần Internet.** Khi vào phòng, trang tải playhtml 2.14.1 từ
-  `unpkg.com` rồi kết nối server công cộng của playhtml (chờ tối đa 20 giây). Nếu
-  mạng chặn unpkg thì chế độ trực tuyến không vào được, nhưng chế độ **cùng một
-  máy** vẫn chơi bình thường.
-- **Nên dùng HTTPS.** `app.js` gọi `crypto.randomUUID()` và `sessionStorage`, là
-  các API yêu cầu secure context. Vercel luôn có HTTPS nên không gặp lỗi; còn cách
-  chơi LAN qua `http://192.168.x.x:3000` ở mục trên có thể lỗi ở chế độ trực tuyến
-  vì đó không phải secure context. Muốn chơi nhiều máy, dùng Vercel (HTTPS) là chắc ăn.
-
 ## Nộp Git
 
 Repository đã cấu hình: https://github.com/huykhanh1602/Group5-proj
 
 ```sh
-git add index.html style.css app.js game.js game.test.js server.mjs package.json README.md vercel.json scripts/build.mjs
+git add index.html style.css app.js game.js game.test.js server.mjs package.json README.md
 git commit -m "Build OTTv2 with playhtml multiplayer"
 git push origin HEAD
 ```
