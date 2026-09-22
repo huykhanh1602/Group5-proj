@@ -252,3 +252,26 @@ export function hasAnyMove(state, owner) {
   }
   return false;
 }
+
+export function applySurrender(state, surrenderingPlayer) {
+  if (state.winner) throw new Error('Ván đấu đã kết thúc.');
+  const winner = otherPlayer(surrenderingPlayer);
+  const winReason = 'surrender';
+
+  const moveLog = {
+    mover: surrenderingPlayer,
+    type: 'surrender',
+    from: '',
+    to: '',
+    captured: null,
+  };
+
+  return {
+    ...state,
+    turn: state.turn, // giữ nguyên lượt để không lỗi
+    winner,
+    winReason,
+    lastMove: moveLog,
+    history: [...state.history, moveLog],
+  };
+}

@@ -1,7 +1,7 @@
 import {
   SIZE, COLS, TYPE_ICON, TYPE_LABEL, TYPES, PLAYERS,
   createInitialState, getValidMoves, applyMove, isWinSquare,
-  countPiecesByType, posToStr,
+  countPiecesByType, posToStr, applySurrender
 } from '../shared/gameLogic.js';
 
 let state = createInitialState();
@@ -14,12 +14,23 @@ const winnerBanner = document.getElementById('winnerBanner');
 const piecesCount = document.getElementById('piecesCount');
 const moveLog = document.getElementById('moveLog');
 const resetBtn = document.getElementById('resetBtn');
+const surrenderBtn = document.getElementById('surrenderBtn');
 
 resetBtn.addEventListener('click', () => {
   state = createInitialState();
   selected = null;
   validMoves = [];
   render();
+});
+
+surrenderBtn.addEventListener('click', () => {
+  if (state.winner) return;
+  if (confirm(`Xác nhận ${state.turn === 'P1' ? 'Người chơi 1' : 'Người chơi 2'} đầu hàng?`)) {
+    state = applySurrender(state, state.turn);
+    selected = null;
+    validMoves = [];
+    render();
+  }
 });
 
 function buildBoardSkeleton() {
@@ -114,7 +125,9 @@ function renderTurn() {
     turnIndicator.innerHTML = `<span class="dot ${state.winner}"></span> Ván đấu kết thúc`;
     const reasonText = state.winReason === 'corner'
       ? 'đưa quân vào ô đích (a1/i9)'
-      : 'ăn sạch một loại quân của đối phương';
+      : state.winReason === 'surrender'
+        ? 'đối phương đầu hàng'
+        : 'ăn sạch một loại quân của đối phương';
     winnerBanner.textContent = `🏆 ${state.winner === 'P1' ? 'Người chơi 1' : 'Người chơi 2'} THẮNG — ${reasonText}!`;
     winnerBanner.classList.add('show');
   } else {
@@ -147,8 +160,12 @@ function renderLog() {
   moveLog.innerHTML = '';
   state.history.forEach((m, i) => {
     const line = document.createElement('div');
-    const capText = m.captured ? ` (ăn ${TYPE_LABEL[m.captured.type]} của ${m.captured.owner})` : '';
-    line.textContent = `${i + 1}. ${m.mover}: ${m.from} → ${m.to}${capText}`;
+    if (m.type === 'surrender') {
+      line.textContent = `${i + 1}. ${m.mover} đã đầu hàng 🏳`;
+    } else {
+      const capText = m.captured ? ` (ăn ${TYPE_LABEL[m.captured.type]} của ${m.captured.owner})` : '';
+      line.textContent = `${i + 1}. ${m.mover}: ${m.from} → ${m.to}${capText}`;
+    }
     moveLog.appendChild(line);
   });
 }
