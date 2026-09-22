@@ -12,28 +12,33 @@ npm start
 
 Mở http://localhost:3000. Không cần npm install. Cùng máy hoạt động không cần dịch vụ đồng bộ; chế độ trực tuyến tải playhtml 2.14.1 từ unpkg và dùng server PartyKit công cộng mặc định của playhtml. Font Google có font hệ thống dự phòng.
 
-## Chơi trực tuyến
+## Hai chế độ chơi
 
-1. Chọn Trực tuyến, nhập tên, tạo phòng hoặc nhập cùng một mã phòng.
+### 1. Hai người cùng một máy
+
+Chọn **1. Cùng một máy**. Người chơi 1 cầm Xanh, người chơi 2 cầm Cam; luân phiên dùng chung chuột hoặc bàn phím. Không cần Internet hoặc mã phòng. Ván cùng máy được giữ trong phiên trang khi chuyển qua lại hai chế độ.
+
+### 2. Chơi trực tuyến
+
+1. Chọn **2. Trực tuyến**, nhập tên, tạo phòng hoặc nhập cùng một mã phòng.
 2. Gửi liên kết phòng cho người thứ hai. Hai trình duyệt phải truy cập cùng hostname vì playhtml phân tách dữ liệu theo hostname.
-3. Mỗi người chọn một đội. Người tiếp theo có thể xem trận đấu.
+3. Mỗi người nhập tên và chọn một đội trên thiết bị của mình. Chỉ đi được quân của mình khi đến lượt; bàn cờ khóa khi chưa đủ hai người. Người tiếp theo có thể xem trận đấu.
 4. Chọn quân rồi chọn ô được đánh dấu. Bấm Chơi lại ở cả hai máy để khởi động ván mới.
-5. Bấm Rời ghế trước khi rời trận. Tải lại cùng tab giữ ghế bằng sessionStorage. Nếu người chơi đóng tab mà chưa nhường ghế, tạo phòng mới; chưa có cơ chế tự thu hồi ghế.
+5. Bấm Rời ghế trước khi rời trận. Chuyển sang chế độ cùng máy cũng nhường ghế trực tuyến khi đang kết nối. Tải lại cùng tab giữ ghế bằng sessionStorage. Nếu người chơi đóng tab mà chưa nhường ghế, tạo phòng mới; chưa có cơ chế tự thu hồi ghế.
 
 Để chơi qua mạng LAN: mọi máy dùng cùng địa chỉ IP của máy chạy server (ví dụ http://192.168.1.10:3000), kể cả máy chủ. Các máy cần truy cập Internet để đồng bộ. Để chơi qua Internet, host bốn file index.html, style.css, app.js, game.js trên hosting tĩnh HTTPS.
 
-## Luật từ ảnh yêu cầu
+## Luật theo yêu cầu đã làm rõ
 
 - Bàn 9×9, mọi quân đi đúng một ô trong tám hướng.
-- Búa ăn Kéo, Kéo ăn Bao, Bao ăn Búa. Quân cùng loại không ăn nhau, chặn nhau.
-- Thắng khi ăn hết một loại quân đối phương hoặc đưa Vua vào a1 / i9.
+- Đấm ăn Kéo, Kéo ăn Bao, Bao ăn Đấm. Quân cùng loại không ăn nhau, chặn nhau.
+- Thắng khi ăn hết một loại quân đối phương.
 
 ## Quy ước bổ sung (đề chưa chỉ rõ)
 
-- Mỗi đội có ba quân mỗi loại và một Vua. Xanh đi trước.
-- Cam: Búa–Kéo–Bao lặp lại ở a8–i8, Vua e9. Xanh: Bao–Kéo–Búa lặp lại ở a2–i2, Vua e1.
-- Vua đi ô trống, không ăn và không bị ăn. Cả hai vua được tới một trong hai ô a1/i9.
-- Không nhảy quân, không đi vào đồng đội hoặc quân khắc chế. Không áp dụng chiếu/chiếu bí của cờ vua.
+- Mỗi đội có 3 Đấm, 3 Kéo và 3 Bao (tổng 9 quân). Xanh đi trước.
+- Cam: Đấm–Kéo–Bao lặp lại ở a8–i8. Xanh: Bao–Kéo–Đấm lặp lại ở a2–i2.
+- Không nhảy quân, không đi vào đồng đội hoặc quân khắc chế.
 - Nếu hết nước đi, hai bên có thể đồng ý chơi lại; đề không quy định xử thua/hòa.
 
 ## Kiến trúc và kiểm tra

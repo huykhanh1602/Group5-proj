@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initialState, canMove, move, replay, coord } from './game.js';
 test('initial board, coordinates and eight directions', () => {
-  const s = initialState(); assert.equal(s.board.filter(Boolean).length, 20); assert.equal(coord(72), 'a1'); assert.equal(coord(8), 'i9');
+  const s = initialState(); assert.equal(s.board.filter(Boolean).length, 18); assert.equal(coord(72), 'a1'); assert.equal(coord(8), 'i9');
+  for (const side of [0,1]) for (const type of ['rock','scissors','paper']) assert.equal(s.board.filter(p => p?.side === side && p.type === type).length,3);
   s.board[40] = { side: 0, type: 'rock' };
   for (const to of [30,31,32,39,41,48,49,50]) assert.ok(canMove(s,40,to));
   for (const to of [40,42,-1,81,0]) assert.ok(!canMove(s,40,to));
   assert.ok(!canMove(s,9,18));
 });
-test('complete capture matrix, allies and king blockers', () => {
-  for (const a of ['rock','scissors','paper','king']) for (const b of ['rock','scissors','paper','king']) {
+test('complete capture matrix and allies', () => {
+  for (const a of ['rock','scissors','paper']) for (const b of ['rock','scissors','paper']) {
     const s = initialState(); s.board[40] = { side:0,type:a }; s.board[41] = { side:1,type:b };
     assert.equal(canMove(s,40,41), { rock:'scissors',scissors:'paper',paper:'rock' }[a] === b);
     s.board[41].side = 0; assert.equal(canMove(s,40,41),false);
@@ -23,10 +24,11 @@ test('capturing the last member of any type wins, partial capture does not', () 
     s.board[42] = { side:1,type:b }; assert.equal(move(s,40,41).winner,null);
   }
 });
-test('either king wins at either goal and finished games reject moves', () => {
+test('corners are ordinary squares and finished games reject moves', () => {
   for (const side of [0,1]) for (const [from,to] of [[73,72],[7,8]]) {
-    const s = initialState(); s.turn = side; s.board[from] = { side,type:'king' };
-    const n = move(s,from,to); assert.equal(n.winner,side); assert.equal(move(n,63,54),n);
+    const s = initialState(); s.turn = side; s.board[from] = { side,type:'rock' };
+    const n = move(s,from,to); assert.equal(n.winner,null);
+    n.winner = side; assert.equal(move(n,63,54),n);
   }
 });
 test('move is immutable and alternates turns', () => { const s = initialState(), n = move(s,63,54); assert.equal(n.turn,1); assert.equal(n.ply,1); assert.equal(s.ply,0); assert.ok(s.board[63]); assert.equal(n.history.length,1); });
