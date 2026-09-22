@@ -1,0 +1,151 @@
+
+===== pid: #0 @266856 =====
+playhtml_cursors__";
+function Wi(t) {
+  const e = t.playerStyle?.colorPalette?.[0];
+  if (e == null || e === "")
+    throw new Error(
+      "[playhtml] Player identity must have playerStyle.colorPalette[0] (primary color)."
+    );
+  return e;
+}
+function Ec(t) {
+  if (!t.publicKey)
+    throw new Error("[playhtml] Player identity must have publicKey.");
+  Wi(t);
+}
+function qt(t, e) {
+  return {
+    pid: t.publicKey,
+    name: t.name,
+    color: Wi(t),
+    isMe: e
+  };
+}
+function Jl(t, e) {
+  let n = t;
+  Ec(n);
+  const s = /* @__PURE__ */ new Set(), r = /* @__PURE__ */ new Set(), i = /* @__PURE__ */ new WeakSet();
+  let o = null, c = null, a = "";
+  function l() {
+    e.getAwareness().setLocalStateField(Qn, n);
+  }
+  function u() {
+    e.getAwareness().getLocalState()?.[Qn] || l();
+  }
+  fun
+
+===== get pid #0 @269691 =====
+get pid() {
+      return n.publicKey;
+    },
+    get name() {
+      return n.name;
+    },
+    set name(y) {
+      n.name !== y && E(() => {
+        n.name = y;
+      });
+    },
+    get color() {
+      return Wi(n);
+    },
+    set color(y) {
+      if (y == null || y === "")
+        throw new Error(
+          "[playhtml] users.me.color cannot be set to empty; player identity must have a primary colo
+
+===== function Jl( #0 @266929 =====
+function Jl(t, e) {
+  let n = t;
+  Ec(n);
+  const s = /* @__PURE__ */ new Set(), r = /* @__PURE__ */ new Set(), i = /* @__PURE__ */ new WeakSet();
+  let o = null, c = null, a = "";
+  function l() {
+    e.getAwareness().setLocalStateField(Qn, n);
+  }
+  function u() {
+    e.getAwareness().getLocalState()?.[Qn] || l();
+  }
+  function h(y, _, V) {
+    for (const O of y)
+      try {
+        O(_);
+      } catch (K) {
+        console.error(`[playhtml] ${V} subscriber threw:`, K);
+      }
+  }
+  function d() {
+    h(s, n, "users self-change");
+  }
+  function f() {
+    if (r.size === 0) return;
+    const y = v();
+    h(r, y, "users change");
+  }
+  function p() {
+    const y = e.getAwareness();
+    o !== y && (o = y, !i.has(y) && (i.add(y), a = g(y.getStates()), y.on("change", m)));
+  }
+  function g(y) {
+    const _ = [], V = Array.from(y.keys()).sort((O, K) => O - K);
+    for (const O of V) {
+      const K = y.get(O);
+      if (!K) continue;
+      const Vn = K[Qn] ?? K[Sc]?.playerIdentity;
+      try {
+        _.push(`${O}:${JSON.stringify(Vn ?? null)}`);
+      } catch {
+        _.push(`${O}:null`);
+      }
+    }
+    return _.join("|");
+  }
+  function m() {
+    const y = e.getAwareness().getStates(), _ = g(y);
+    _ !== a && (a = _, f());
+  }
+  function w() {
+    if (u(), p(), !c && e.onCursorPresencesChange) {
+      const y = e.onCursorPresencesChange(() => {
+        f();
+      });
+      y && (c = y);
+    }
+  }
+  function C() {
+    const y = e.getAwareness(), _ = y.getLocalState();
+    return _ ? yt(_, y.clientID) : n.publicKey;
+  }
+  function v() {
+    const y = /* @__PURE__ */ new Map(), _ = e.getAwareness(), V = _.getStates(), O = C(), K = /* @__PURE__ */ new Map();
+    V.forEach((Pe, le) => {
+      const ue = yt(Pe, le), Kn = ue === O, Wt = K.get(ue);
+      if (Wt === void 0) {
+        K.set(ue, le);
+        return;
+      }
+      if (Kn && le === _.clientID) {
+        K.set(ue, le);
+        return;
+      }
+      Kn && Wt === _.clientID || le > Wt && K.set(ue, le);
+    });
+    for (const [Pe, le] of K) {
+      const ue = V.get(le);
+      if (!ue) continue;
+      const Kn = Pe === O, Wt = ue[Sc], po = ue[Qn] ?? Wt?.playerIdentity;
+      if (Kn)
+        y.set(Pe, qt(n, !0));
+      else if (po)
+        try {
+          y.set(Pe, qt(po, !1));
+        } catch {
+        }
+    }
+    y.has(O) || y.set(O, qt(n, !0));
+    const Vn = e.getCursorPresences?.();
+    if (Vn)
+      for (const [Pe, le] of Vn) {
+        if (!le.playerIdentity) continue;
+        const ue = Pe === O;
