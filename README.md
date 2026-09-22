@@ -32,8 +32,7 @@ Chọn **1. Cùng một máy**. Người chơi 1 cầm Xanh, người chơi 2 c�
 
 - Bàn 9×9, mọi quân đi đúng một ô trong tám hướng.
 - Đấm ăn Kéo, Kéo ăn Bao, Bao ăn Đấm. Quân cùng loại không ăn nhau, chặn nhau.
-- Xanh bảo vệ a1, Cam bảo vệ i9. Đưa bất kỳ quân nào vào ô bảo vệ đối phương sẽ thắng; vào ô của mình không thắng. Nếu ô đích có quân, nước đi vẫn phải hợp lệ theo luật ăn quân.
-- Ăn hết một loại quân đối phương cũng là điều kiện thắng.
+- Thắng khi ăn hết một loại quân đối phương.
 
 ## Quy ước bổ sung (đề chưa chỉ rõ)
 
@@ -51,7 +50,7 @@ Chọn **1. Cùng một máy**. Người chơi 1 cầm Xanh, người chơi 2 c�
 - `server.mjs`: server tĩnh, chỉ phục vụ bốn file công khai.
 - `npm test`: kiểm tra tám hướng, ma trận ăn quân, điều kiện thắng, lượt, tranh ghế, đồng bộ thứ tự và đồng thuận chơi lại.
 
-Đã kiểm tra trên hai cửa sổ trình duyệt: chọn hai đội, đồng bộ nước đi Xanh và Cam, yêu cầu/đồng ý chơi lại, cả hai trở về 0 nước, rời ghế. Các bài kiểm tra tự động bao gồm cả chiếm ô bảo vệ bằng cả ba loại quân, không thắng ở ô nhà và kiểm tra ăn quân tại ô bảo vệ.
+Đã kiểm tra trên hai cửa sổ trình duyệt: chọn hai đội, đồng bộ nước đi Xanh và Cam, yêu cầu/đồng ý chơi lại, cả hai trở về 0 nước, rời ghế. Sáu bài kiểm tra tự động đều đạt.
 
 Kiểm thử bổ sung khi triển khai: mở trình duyệt thứ ba để xem, thử phòng khác, tải lại và kiểm tra trên các máy qua Internet.
 

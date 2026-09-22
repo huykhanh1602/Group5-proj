@@ -24,28 +24,11 @@ test('capturing the last member of any type wins, partial capture does not', () 
     s.board[42] = { side:1,type:b }; assert.equal(move(s,40,41).winner,null);
   }
 });
-test('each piece type wins at the opposing base and stops the game', () => {
-  for (const type of ['rock','scissors','paper']) for (const [side,from,to] of [[0,7,8],[1,73,72]]) {
-    const s = initialState(); s.turn = side; s.board[from] = { side,type };
-    const n = move(s,from,to); assert.equal(n.winner,side);
-    assert.match(n.reason, /ô bảo vệ/); assert.equal(move(n,63,54),n);
-  }
-});
-test('entering your own base does not win', () => {
-  for (const [side,from,to] of [[0,73,72],[1,7,8]]) {
+test('corners are ordinary squares and finished games reject moves', () => {
+  for (const side of [0,1]) for (const [from,to] of [[73,72],[7,8]]) {
     const s = initialState(); s.turn = side; s.board[from] = { side,type:'rock' };
-    assert.equal(move(s,from,to).winner,null);
-  }
-});
-test('occupied bases still obey capture rules', () => {
-  for (const [side,from,to] of [[0,7,8],[1,73,72]]) {
-    for (const defender of ['rock','paper','scissors']) {
-      const s = initialState(); s.turn = side;
-      s.board[from] = { side,type:'rock' }; s.board[to] = { side:1-side,type:defender };
-      const n = move(s,from,to);
-      if (defender === 'scissors') assert.equal(n.winner,side);
-      else assert.equal(n,s);
-    }
+    const n = move(s,from,to); assert.equal(n.winner,null);
+    n.winner = side; assert.equal(move(n,63,54),n);
   }
 });
 test('move is immutable and alternates turns', () => { const s = initialState(), n = move(s,63,54); assert.equal(n.turn,1); assert.equal(n.ply,1); assert.equal(s.ply,0); assert.ok(s.board[63]); assert.equal(n.history.length,1); });
