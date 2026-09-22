@@ -1,3 +1,9 @@
 node_modules/
 *.log
 .DS_Store
+
+# Thư mục build tĩnh được sinh bởi `npm run build:static` (Vercel tự build)
+dist/
+
+# Vercel CLI
+.vercel

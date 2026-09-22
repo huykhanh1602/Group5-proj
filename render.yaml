@@ -1,0 +1,26 @@
+# Render Blueprint cho server WebSocket (Express + ws) của OTTv2.
+# ---------------------------------------------------------------
+# Vercel chỉ host phần tĩnh (local/ + multiplayer/), còn server giữ
+# trạng thái phòng trong RAM và cần một process Node chạy liên tục,
+# nên được deploy riêng ở đây.
+#
+# Cách dùng: Render Dashboard -> New -> Blueprint -> chọn repo này.
+# Sau khi deploy xong, copy URL dạng https://<ten-service>.onrender.com
+# rồi set vào biến môi trường WS_URL của project trên Vercel (Build env).
+#
+# Lưu ý: buildCommand dùng `npm install --prefix server` để cài
+# express/ws vào server/node_modules; startCommand chạy từ repo root
+# nên `../shared/gameLogic.js` vẫn resolve được.
+services:
+    - type: web
+      name: ottv2-ws-server
+      runtime: node
+      plan: free
+      region: singapore
+      buildCommand: npm install --prefix server
+      startCommand: node server/server.js
+      healthCheckPath: /
+      autoDeploy: true
+      envVars:
+          - key: NODE_VERSION
+            value: "20"

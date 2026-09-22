@@ -1,0 +1,7 @@
+{
+    "name": "ottv2-shared",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Shared OTTv2 game logic (ESM) used by both the local hotseat UI and the WebSocket server"
+}

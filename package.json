@@ -1,0 +1,34 @@
+{
+    "name": "group5-proj",
+    "version": "1.0.0",
+    "description": "OTTv2 - Oẳn Tù Tì v2 (bản local 2 người chơi + server multiplayer WebSocket)",
+    "private": true,
+    "main": "server/server.js",
+    "scripts": {
+        "build": "node scripts/build-static.mjs",
+        "build:static": "node scripts/build-static.mjs",
+        "verify:dist": "node scripts/verify-dist.mjs",
+        "preview": "node scripts/preview-dist.mjs",
+        "check:dist": "node scripts/preview-dist.mjs --check",
+        "start": "node server/server.js",
+        "dev": "node --watch server/server.js",
+        "install:server": "npm --prefix server install",
+        "test:ws": "node server/smoke-test.mjs",
+        "test": "node scripts/build-static.mjs && node scripts/verify-dist.mjs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/huykhanh1602/Group5-proj.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "engines": {
+        "node": ">=18"
+    },
+    "bugs": {
+        "url": "https://github.com/huykhanh1602/Group5-proj/issues"
+    },
+    "homepage": "https://github.com/huykhanh1602/Group5-proj#readme"
+}

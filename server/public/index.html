@@ -1,63 +1,68 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>OTTv2 - Oẳn Tù Tì Cờ Vua (Multiplayer)</title>
-<link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <header>
-    <h1>🎮 OTTv2 — Oẳn Tù Tì v2 <small style="font-size:0.9rem;color:#93a1b6;">(Multiplayer)</small></h1>
-    <p>Bàn cờ 9x9 · Búa – Bao – Kéo · Đi như quân Vua · Nhiều người chơi qua Server</p>
-    <div class="room-bar">
-      <input id="roomInput" placeholder="Tên phòng (VD: nhom5)" />
-      <button id="joinBtn">Vào phòng</button>
-      <span class="status-pill disconnected" id="connStatus">● Chưa kết nối</span>
-      <span class="role-badge" id="roleBadge"></span>
-    </div>
-  </header>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>OTTv2 - Oẳn Tù Tì Cờ Vua (Multiplayer)</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <header>
+            <h1>
+                🎮 OTTv2 — Oẳn Tù Tì v2
+                <small style="font-size: 0.9rem; color: #93a1b6">(Multiplayer)</small>
+            </h1>
+            <p>Bàn cờ 9x9 · Búa – Bao – Kéo · Đi như quân Vua · Nhiều người chơi qua Server</p>
+            <div class="room-bar">
+                <input id="roomInput" placeholder="Tên phòng (VD: nhom5)" />
+                <button id="joinBtn">Vào phòng</button>
+                <span class="status-pill disconnected" id="connStatus">● Chưa kết nối</span>
+                <span class="role-badge" id="roleBadge"></span>
+            </div>
+        </header>
 
-  <div class="layout">
-    <div class="board-wrap">
-      <div class="board-coords" id="boardCoords"></div>
-    </div>
+        <div class="layout">
+            <div class="board-wrap">
+                <div class="board-coords" id="boardCoords"></div>
+            </div>
 
-    <div class="sidebar">
-      <div class="panel">
-        <div class="turn-indicator" id="turnIndicator">Đang chờ kết nối...</div>
-        <div class="winner-banner" id="winnerBanner"></div>
-        <button class="reset" id="resetBtn">🔄 Yêu cầu ván mới</button>
-      </div>
+            <div class="sidebar">
+                <div class="panel">
+                    <div class="turn-indicator" id="turnIndicator">Đang chờ kết nối...</div>
+                    <div class="winner-banner" id="winnerBanner"></div>
+                    <button class="reset" id="resetBtn">🔄 Yêu cầu ván mới</button>
+                </div>
 
-      <div class="panel">
-        <h3 style="margin-top:0;">Quân cờ còn lại</h3>
-        <div class="pieces-count" id="piecesCount"></div>
-      </div>
+                <div class="panel">
+                    <h3 style="margin-top: 0">Quân cờ còn lại</h3>
+                    <div class="pieces-count" id="piecesCount"></div>
+                </div>
 
-      <div class="panel">
-        <h3 style="margin-top:0;">Người trong phòng</h3>
-        <div class="rules" id="roomInfo">—</div>
-      </div>
+                <div class="panel">
+                    <h3 style="margin-top: 0">Người trong phòng</h3>
+                    <div class="rules" id="roomInfo">—</div>
+                </div>
 
-      <div class="panel">
-        <h3 style="margin-top:0;">Luật chơi</h3>
-        <div class="rules">
-          ✊ Búa thắng ✌️ Kéo · ✌️ Kéo thắng ✋ Bao · ✋ Bao thắng ✊ Búa.<br/>
-          Mỗi quân đi 1 ô theo 8 hướng (như Vua).<br/>
-          Quân cùng loại KHÔNG ăn được nhau, chỉ chặn đường.<br/>
-          Thắng nếu: ăn sạch 1 loại quân của đối phương, hoặc đưa quân vào ô
-          <b>a1</b> / <b>i9</b> (ô có viền vàng ★).
+                <div class="panel">
+                    <h3 style="margin-top: 0">Luật chơi</h3>
+                    <div class="rules">
+                        ✊ Búa thắng ✌️ Kéo · ✌️ Kéo thắng ✋ Bao · ✋ Bao thắng ✊ Búa.<br />
+                        Mỗi quân đi 1 ô theo 8 hướng (như Vua).<br />
+                        Quân cùng loại KHÔNG ăn được nhau, chỉ chặn đường.<br />
+                        Thắng nếu: ăn sạch 1 loại quân của đối phương, hoặc đưa quân vào ô
+                        <b>a1</b> / <b>i9</b> (ô có viền vàng ★).
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3 style="margin-top: 0">Lịch sử nước đi</h3>
+                    <div class="log" id="moveLog"></div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <div class="panel">
-        <h3 style="margin-top:0;">Lịch sử nước đi</h3>
-        <div class="log" id="moveLog"></div>
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="client.js"></script>
-</body>
+        <!-- Nạp cấu hình runtime (địa chỉ WebSocket server) trước module chính -->
+        <script src="runtime-config.js"></script>
+        <script type="module" src="client.js"></script>
+    </body>
 </html>

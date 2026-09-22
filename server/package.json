@@ -1,15 +1,19 @@
 {
-  "name": "ottv2-server",
-  "version": "1.0.0",
-  "description": "OTTv2 - Oan Tu Ti v2 multiplayer server (WebSocket)",
-  "type": "module",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2",
-    "ws": "^8.17.0"
-  }
+    "name": "ottv2-server",
+    "version": "1.0.0",
+    "description": "OTTv2 - Oan Tu Ti v2 multiplayer server (WebSocket)",
+    "type": "module",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node --watch server.js",
+        "test:ws": "node smoke-test.mjs"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "express": "^4.19.2",
+        "ws": "^8.17.0"
+    }
 }
