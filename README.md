@@ -3,8 +3,14 @@
 Code base cho 2 bài tập:
 
 1. **`local/`** — Trang web cho 2 người chơi trên cùng 1 máy (hotseat), không cần server.
-2. **`server/`** — Server (Node.js + WebSocket) cho phép nhiều người chơi thật, mỗi
-   người 1 máy/1 trình duyệt, vào chung 1 "phòng" để đấu với nhau.
+2. **`playhtml/`** — ✅ Bản chính thức của bài 2: dùng thư viện
+   **[playhtml.fun](https://playhtml.fun)** để đồng bộ nhiều người chơi real-time.
+   playhtml.fun tự lo phần "server" (qua dịch vụ PartyKit công khai của thư
+   viện) nên nhóm **không cần tự host backend**.
+3. **`server/`** — Bản thay thế: server tự viết bằng Node.js + WebSocket, dùng
+   trong lúc nhóm chưa rõ yêu cầu dùng đúng thư viện nào. Giữ lại để tham
+   khảo / làm phương án dự phòng nếu playhtml.fun bị chặn mạng hoặc môn học
+   yêu cầu server tự host.
 
 Luật chơi lõi được viết **một lần duy nhất** trong `shared/gameLogic.js` và dùng
 chung cho cả hai bản (local dùng trực tiếp, server dùng để xác thực nước đi,
@@ -19,7 +25,11 @@ OTTv2/
 │   ├── index.html
 │   ├── style.css
 │   └── game.js
-└── server/                 # Bài 2: multiplayer qua server
+├── playhtml/               # Bài 2 (chính thức): multiplayer bằng playhtml.fun
+│   ├── index.html
+│   ├── style.css
+│   └── app.js               # dùng playhtml.createPageData + playhtml.users
+└── server/                 # Bài 2 (phương án dự phòng): server Node tự host
     ├── package.json
     ├── server.js           # Node + Express + WebSocket (ws)
     └── public/
@@ -67,7 +77,46 @@ python3 -m http.server 5500
 2 người chơi thay phiên click chọn quân (chỉ chọn được quân của người đang
 tới lượt) rồi click ô đích được tô sáng để đi.
 
-## Bài 2 — Chạy bản multiplayer (server)
+## Bài 2 (chính thức) — Chạy bản multiplayer bằng playhtml.fun
+
+Không cần cài Node, không cần `npm install`, không cần tự chạy server — chỉ
+cần một static file server đơn giản để mở đúng cách qua `http://` (ES module
+không chạy được khi mở file trực tiếp bằng `file://`):
+
+```bash
+cd OTTv2            # đứng ở thư mục gốc (chứa local/, playhtml/, shared/...)
+npx serve .
+# in ra http://localhost:3000
+```
+
+Mở trình duyệt (2 máy/2 tab khác nhau, cùng 1 tên phòng):
+
+```
+http://localhost:3000/playhtml/?room=nhom5
+http://localhost:3000/playhtml/?room=nhom5
+```
+
+- Người vào phòng đầu tiên tự động là **P1**, người thứ hai là **P2**, từ
+  người thứ ba trở đi là **khán giả**.
+- Toàn bộ trạng thái ván đấu (bàn cờ, lượt đi, ai đang thắng...) được lưu
+  trong một **page-level data channel** của playhtml
+  (`playhtml.createPageData(...)`) — playhtml tự đồng bộ real-time giữa mọi
+  người đang mở cùng `?room=...` này, kể cả khi họ ở 2 máy khác nhau qua
+  Internet thật (không chỉ localhost), vì dữ liệu được đồng bộ qua server
+  của playhtml.fun chứ không qua máy bạn.
+- `playhtml.users` dùng để biết ai đang có mặt trong phòng và tự dọn chỗ
+  ngồi (P1/P2) khi một người rời đi.
+- Luật chơi (di chuyển, ăn quân, thắng/thua) vẫn được kiểm tra bằng đúng
+  `shared/gameLogic.js` — không viết lại luật riêng cho bản playhtml.
+
+> ⚠️ Vì playhtml.fun đồng bộ real-time kiểu client tự ghi state (không có
+> server riêng của nhóm đứng ra "trọng tài"), nếu 2 người bấm gần như cùng
+> lúc có thể hiếm khi bị lệch 1 nhịp — đây là giới hạn cố hữu của mô hình
+> playhtml (đổi lại là không cần tự host server). Bản `server/` bên dưới có
+> server riêng "trọng tài" mọi nước đi nên không gặp vấn đề này, nếu môn
+> học yêu cầu độ chặt chẽ cao hơn thì dùng bản đó.
+
+## Bài 2 (phương án dự phòng) — Server Node.js tự host
 
 ```bash
 cd server
