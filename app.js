@@ -1,9 +1,11 @@
 import { initialState, canMove, move, replay, ICON, LABEL, TYPES, BASES, coord } from './game.js';
+import { Matchmaker } from './matchmaking.js';
 const $ = id => document.getElementById(id);
 const team = side => side === 0 ? 'Xanh' : 'Cam';
 let game = initialState(), selected = null, channel = null, shared = null, connected = false;
 const params = new URLSearchParams(location.search), room = params.get('room');
-let mode = room ? 'online' : 'local', localGame = game;
+let mode = room || params.has('match') ? 'online' : 'local', localGame = game;
+let matchmaker = null, lobbyPromise = null, searchRequested = false;
 const actor = sessionStorage.getItem('ott-player') || crypto.randomUUID();
 sessionStorage.setItem('ott-player', actor);
 let toastTimer;
@@ -83,6 +85,7 @@ function send(data) {
   channel.setData(draft => { draft[id] = { ...data, id, actor, clock, round: shared?.round || 0 }; });
 }
 function showMode(online) {
+  if (!online) cancelSearch();
   if (mode === 'local') localGame = game;
   if (!online && mode === 'online' && mySide() >= 0) send({ kind: 'leave' });
   mode = online ? 'online' : 'local';
@@ -90,13 +93,56 @@ function showMode(online) {
   selected = null;
   render();
 }
-$('online').onclick = () => showMode(true);
+$('online').onclick = () => { showMode(true); if (!room) startSearch(); };
 $('local').onclick = () => showMode(false);
-function enter(code) { const url = new URL(location.href); url.search = ''; url.searchParams.set('room', code); sessionStorage.setItem('ott-name', $('name').value.trim() || 'Người chơi'); location.href = url.href; }
+function enter(code) { cancelSearch(); const url = new URL(location.href); url.search = ''; url.searchParams.set('room', code); sessionStorage.setItem('ott-name', $('name').value.trim() || 'Người chơi'); location.href = url.href; }
 $('room-form').onsubmit = e => { e.preventDefault(); enter($('room').value.trim().toLowerCase()); };
 $('create').onclick = () => enter(crypto.randomUUID().slice(0, 8));
 $('name').value = sessionStorage.getItem('ott-name') || 'Người chơi';
-$('copy').onclick = async () => { try { await navigator.clipboard.writeText(location.href); toast('Đã sao chép liên kết mời.'); } catch { toast('Hãy sao chép địa chỉ trang trên thanh trình duyệt.'); } };
+function cancelSearch() {
+  searchRequested = false; matchmaker?.stop();
+  $('find-match').disabled = false; $('cancel-match').hidden = true;
+  $('match-status').textContent = 'Chọn Tìm đối thủ hoặc tạo phòng riêng bên dưới.';
+}
+async function startSearch() {
+  if (searchRequested || room) return;
+  searchRequested = true; $('find-match').disabled = true; $('cancel-match').hidden = false;
+  $('match-status').textContent = 'Đang kết nối sảnh ghép trận…';
+  try {
+    lobbyPromise ||= (async () => {
+      const { playhtml } = await import('https://unpkg.com/playhtml@2.14.1/dist/playhtml.es.js');
+      await playhtml.init({ room:'group5-ottv2-matchmaking-v1', onError: () => {
+        cancelSearch(); $('match-status').textContent = 'Không kết nối được sảnh. Hãy tải lại để thử lại.';
+      } });
+      return playhtml;
+    })();
+    const client = await Promise.race([lobbyPromise, new Promise((_,reject) => setTimeout(() => reject(new Error('Timeout')), 20000))]);
+    if (!searchRequested || mode !== 'online') return;
+    matchmaker ||= new Matchmaker(client, actor, message => $('match-status').textContent = message, (match, side) => {
+      if (!searchRequested || mode !== 'online') return;
+      sessionStorage.setItem('ott-auto-seat', JSON.stringify({ room:match.room, side }));
+      $('match-status').textContent = 'Đã tìm được đối thủ. Đang vào phòng…';
+      enter(match.room);
+    });
+    const name = $('name').value.trim() || 'Người chơi'; sessionStorage.setItem('ott-name',name);
+    matchmaker.start(name);
+  } catch (error) { cancelSearch(); $('match-status').textContent = 'Không kết nối được sảnh. Hãy tải lại trang để thử lại.'; console.error(error); }
+}
+$('find-match').onclick = startSearch;
+$('cancel-match').onclick = cancelSearch;
+$('back-lobby').onclick = () => {
+  if (mySide() >= 0) send({ kind:'leave' });
+  const url = new URL(location.href); url.search = '?match=1'; location.href = url.href;
+};
+window.addEventListener('pagehide', cancelSearch);
+window.addEventListener('offline', cancelSearch);
+$('copy').onclick = async () => {
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+  try {
+    await navigator.clipboard.writeText(location.href);
+    toast(local ? 'Đã sao chép link chạy thử trên máy này. Để mời người ở xa, hãy mở bản web HTTPS công khai rồi tạo phòng.' : 'Đã sao chép liên kết mời. Gửi link này cho bạn để vào cùng phòng.');
+  } catch { toast('Hãy sao chép địa chỉ trang trên thanh trình duyệt.'); }
+};
 for (const side of [0, 1]) $('join-' + side).onclick = () => {
   const name = $('room-name').value.trim() || 'Người chơi';
   sessionStorage.setItem('ott-name', name);
@@ -109,6 +155,7 @@ $('rules-button').onclick = () => $('rules').showModal(); $('close-rules').oncli
 $('board').onkeydown = e => { const i = Number(e.target.dataset.index); const delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -9, ArrowDown: 9 }[e.key]; if (delta && Number.isInteger(i)) { e.preventDefault(); $('board').children[Math.max(0, Math.min(80, i + delta))].focus(); } };
 function fail() { connected = false; $('connection').textContent = '● Mất kết nối'; toast('Không kết nối được playhtml. Kiểm tra mạng rồi tải lại trang.'); render(); }
 render();
+if (!room && params.has('match')) startSearch();
 if (room) {
   showMode(true); $('room-info').hidden = false; $('room-label').textContent = `Phòng / ${room}`; $('connection').textContent = '● Đang kết nối…';
   try {
@@ -117,6 +164,11 @@ if (room) {
     channel = playhtml.createPageData('ott-v2-operations-v3', {});
     const update = log => { shared = replay(log); if (mode === 'online') { game = shared.game; selected = null; } render(); };
     connected = true; channel.onUpdate(update); update(channel.getData());
+    let autoSeat;
+    try { autoSeat = JSON.parse(sessionStorage.getItem('ott-auto-seat') || 'null'); } catch { /* Ignore invalid saved preference. */ }
+    if (autoSeat?.room === room && [0,1].includes(autoSeat.side) && !shared.seats.some(s => s?.id === actor)) {
+      send({ kind:'join', side:autoSeat.side, name:sessionStorage.getItem('ott-name') || 'Người chơi' });
+    }
     render();
     playhtml.users.me.name = sessionStorage.getItem('ott-name') || 'Người chơi';
     const updateUsers = users => $('presence').textContent = `${users.length} người trong phòng`;

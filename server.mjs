@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const root = fileURLToPath(new URL('.', import.meta.url));
-const publicFiles = new Set(['index.html', 'app.js', 'game.js', 'style.css']);
+const publicFiles = new Set(['index.html', 'app.js', 'game.js', 'matchmaking.js', 'style.css']);
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 http.createServer(async (req, res) => {
   try {

@@ -20,13 +20,19 @@ Chọn **1. Cùng một máy**. Người chơi 1 cầm Xanh, người chơi 2 c�
 
 ### 2. Chơi trực tuyến
 
-1. Chọn **2. Trực tuyến**, nhập tên, tạo phòng hoặc nhập cùng một mã phòng.
-2. Gửi liên kết phòng cho người thứ hai. Hai trình duyệt phải truy cập cùng hostname vì playhtml phân tách dữ liệu theo hostname.
-3. Mỗi người nhập tên và chọn một đội trên thiết bị của mình. Chỉ đi được quân của mình khi đến lượt; bàn cờ khóa khi chưa đủ hai người. Người tiếp theo có thể xem trận đấu.
-4. Chọn quân rồi chọn ô được đánh dấu. Bấm Chơi lại ở cả hai máy để khởi động ván mới.
-5. Bấm Rời ghế trước khi rời trận. Chuyển sang chế độ cùng máy cũng nhường ghế trực tuyến khi đang kết nối. Tải lại cùng tab giữ ghế bằng sessionStorage. Nếu người chơi đóng tab mà chưa nhường ghế, tạo phòng mới; chưa có cơ chế tự thu hồi ghế.
+**Ghép ngẫu nhiên:** chọn **2. Trực tuyến** để tự vào sảnh tìm đối thủ. Các người chơi đang chờ được xáo trộn bằng mã vé ngẫu nhiên, ghép từng cặp hai người và chuyển vào phòng riêng, tự phân đội Xanh/Cam. Người lẻ tiếp tục chờ. Có thể **Hủy tìm trận**, tìm lại hoặc chuyển về cùng máy. Người tạo phòng riêng không nằm trong hàng chờ.
 
-Để chơi qua mạng LAN: mọi máy dùng cùng địa chỉ IP của máy chạy server (ví dụ http://192.168.1.10:3000), kể cả máy chủ. Các máy cần truy cập Internet để đồng bộ. Để chơi qua Internet, host bốn file index.html, style.css, app.js, game.js trên hosting tĩnh HTTPS.
+**Mời bạn:** bấm **Tạo phòng riêng & mời bạn**, sao chép liên kết phòng và gửi bạn. Bạn cũng có thể nhập mã phòng riêng. Mỗi người chọn một đội; phòng đủ hai người vẫn cho khán giả xem. Hai máy phải dùng cùng hostname.
+
+Trong trận chỉ đi được quân của mình khi đến lượt. Chơi lại cần cả hai người đồng ý. Bấm **Về sảnh · tìm đối thủ mới** để ghép ván khác. Tải lại cùng tab giữ ghế bằng sessionStorage. Rời ghế trước khi đóng tab; ghế trong trận chưa tự thu hồi khi đóng tab đột ngột.
+
+Để chơi qua mạng LAN: mọi máy dùng cùng địa chỉ IP của máy chạy server (ví dụ http://192.168.1.10:3000), kể cả máy chủ. Các máy cần truy cập Internet để đồng bộ. Để chơi qua Internet, host năm file index.html, style.css, app.js, game.js, matchmaking.js trên hosting tĩnh HTTPS.
+
+## Chơi từ hai nơi hoặc hai mạng khác nhau
+
+Web cần được xuất bản trên HTTPS công khai. GitHub Pages có thể phục vụ trực tiếp mã nguồn này: trong repository, vào **Settings → Pages → Deploy from a branch**, chọn nhánh **codex/playhtml-ottv2**, thư mục **/(root)** và Save. Địa chỉ dự kiến là https://huykhanh1602.github.io/Group5-proj/ (chỉ hoạt động sau khi Pages triển khai thành công).
+
+Hai người mở cùng địa chỉ công khai, chọn Trực tuyến để ghép ngẫu nhiên hoặc tạo phòng riêng và gửi link phòng. Dữ liệu đi qua server công cộng của playhtml, không qua máy chạy localhost; hai người không cần cùng Wi-Fi, không cần mở cổng router và không cần giữ máy chủ cá nhân bật. Cả hai cần Internet và truy cập được CDN unpkg cùng dịch vụ playhtml/PartyKit. Không gửi link localhost cho người ở xa.
 
 ## Luật theo yêu cầu đã làm rõ
 
@@ -48,8 +54,12 @@ Chọn **1. Cùng một máy**. Người chơi 1 cầm Xanh, người chơi 2 c�
 - `app.js`: giao diện, phòng, ghế và dữ liệu dùng chung bằng `playhtml.createPageData`.
 - Các thao tác mang ID riêng, đồng hồ logic, số ván và số nước đi. Phát lại theo thứ tự xác định để phân xử tranh ghế và loại bỏ nước đi cũ khi thao tác đồng thời. Lưu thao tác vào các khóa riêng giúp tránh ghi đè toàn bộ bàn cờ.
 - Server công cộng đồng bộ dữ liệu; kiểm tra luật ở client. Phù hợp bài tập/demo, chưa có xác thực hay server chống gian lận. Không lưu thông tin nhạy cảm trong phòng.
-- `server.mjs`: server tĩnh, chỉ phục vụ bốn file công khai.
+- `matchmaking.js`: sảnh dùng `playhtml.createPageData` để lưu vé và kết quả ghép; `playhtml.presence` và heartbeat riêng cho từng vé theo dõi người đang chờ (hỗ trợ nhiều tab cùng trình duyệt). Mỗi vé chỉ chọn một đối thủ; chỉ xác nhận cặp khi cả hai vé chọn nhau. Kết quả ghép được lưu trước khi chuyển phòng. Người hủy hoặc mất heartbeat được loại khỏi hàng chờ; lời mời không khớp được thử lại sau 8 giây bằng vé mới. Sảnh là chung cho hostname, phòng game tách riêng.
+- Ghép trận hiện chạy phía trình duyệt, dùng server đồng bộ công cộng của playhtml; không có server xác thực chống gian lận. Dữ liệu sảnh được lưu bền, chưa có tác vụ dọn lịch sử vé; bản demo cần bổ sung dọn dữ liệu và backend đáng tin cậy nếu vận hành quy mô lớn.
+- `server.mjs`: server tĩnh, chỉ phục vụ năm file công khai.
 - `npm test`: kiểm tra tám hướng, ma trận ăn quân, điều kiện thắng, lượt, tranh ghế, đồng bộ thứ tự và đồng thuận chơi lại.
+
+Đã kiểm tra ghép ngẫu nhiên thực tế: hai cửa sổ tự vào cùng phòng, phân đội Xanh/Cam và đồng bộ nước đi. 13 bài kiểm tra tự động đều đạt.
 
 Đã kiểm tra trên hai cửa sổ trình duyệt: chọn hai đội, đồng bộ nước đi Xanh và Cam, yêu cầu/đồng ý chơi lại, cả hai trở về 0 nước, rời ghế. Các bài kiểm tra tự động bao gồm cả chiếm ô bảo vệ bằng cả ba loại quân, không thắng ở ô nhà và kiểm tra ăn quân tại ô bảo vệ.
 
