@@ -3,8 +3,14 @@
 Code base cho 2 bài tập:
 
 1. **`local/`** — Trang web cho 2 người chơi trên cùng 1 máy (hotseat), không cần server.
-2. **`server/`** — Server (Node.js + WebSocket) cho phép nhiều người chơi thật, mỗi
-   người 1 máy/1 trình duyệt, vào chung 1 "phòng" để đấu với nhau.
+2. **`playhtml/`** — ✅ Bản chính thức của bài 2: dùng thư viện
+   **[playhtml.fun](https://playhtml.fun)** để đồng bộ nhiều người chơi real-time.
+   playhtml.fun tự lo phần "server" (qua dịch vụ PartyKit công khai của thư
+   viện) nên nhóm **không cần tự host backend**.
+3. **`server/`** — Bản thay thế: server tự viết bằng Node.js + WebSocket, dùng
+   trong lúc nhóm chưa rõ yêu cầu dùng đúng thư viện nào. Giữ lại để tham
+   khảo / làm phương án dự phòng nếu playhtml.fun bị chặn mạng hoặc môn học
+   yêu cầu server tự host.
 
 Luật chơi lõi được viết **một lần duy nhất** trong `shared/gameLogic.js` và dùng
 chung cho cả hai bản (local dùng trực tiếp, server dùng để xác thực nước đi,
@@ -20,22 +26,17 @@ OTTv2/
 │   ├── index.html
 │   ├── style.css
 │   └── game.js
-├── server/                 # Bài 2: multiplayer qua server
-│   ├── package.json
-│   ├── server.js           # Node + Express + WebSocket (ws)
-│   ├── smoke-test.mjs      # Test end-to-end server WebSocket
-│   └── public/
-│       ├── index.html
-│       ├── style.css
-│       ├── client.js
-│       └── runtime-config.js  # Địa chỉ WS server (build sinh lại khi deploy)
-├── scripts/                # Công cụ build/kiểm tra bản tĩnh
-│   ├── build-static.mjs    # Gom local/ + server/public/ + shared/ -> dist/
-│   ├── verify-dist.mjs     # Kiểm tra đường dẫn import trong dist/
-│   └── preview-dist.mjs    # Chạy thử dist/ đúng như Vercel phục vụ
-├── vercel.json             # Cấu hình deploy phần tĩnh lên Vercel
-├── render.yaml             # Blueprint deploy server WebSocket lên Render
-└── package.json            # Script build/deploy ở gốc repo
+├── playhtml/               # Bài 2 (chính thức): multiplayer bằng playhtml.fun
+│   ├── index.html
+│   ├── style.css
+│   └── app.js               # dùng playhtml.createPageData + playhtml.users
+└── server/                 # Bài 2 (phương án dự phòng): server Node tự host
+    ├── package.json
+    ├── server.js           # Node + Express + WebSocket (ws)
+    └── public/
+        ├── index.html
+        ├── style.css
+        └── client.js
 ```
 
 ## Luật chơi (OTTv2)
@@ -77,7 +78,46 @@ python3 -m http.server 5500
 2 người chơi thay phiên click chọn quân (chỉ chọn được quân của người đang
 tới lượt) rồi click ô đích được tô sáng để đi.
 
-## Bài 2 — Chạy bản multiplayer (server)
+## Bài 2 (chính thức) — Chạy bản multiplayer bằng playhtml.fun
+
+Không cần cài Node, không cần `npm install`, không cần tự chạy server — chỉ
+cần một static file server đơn giản để mở đúng cách qua `http://` (ES module
+không chạy được khi mở file trực tiếp bằng `file://`):
+
+```bash
+cd OTTv2            # đứng ở thư mục gốc (chứa local/, playhtml/, shared/...)
+npx serve .
+# in ra http://localhost:3000
+```
+
+Mở trình duyệt (2 máy/2 tab khác nhau, cùng 1 tên phòng):
+
+```
+http://localhost:3000/playhtml/?room=nhom5
+http://localhost:3000/playhtml/?room=nhom5
+```
+
+- Người vào phòng đầu tiên tự động là **P1**, người thứ hai là **P2**, từ
+  người thứ ba trở đi là **khán giả**.
+- Toàn bộ trạng thái ván đấu (bàn cờ, lượt đi, ai đang thắng...) được lưu
+  trong một **page-level data channel** của playhtml
+  (`playhtml.createPageData(...)`) — playhtml tự đồng bộ real-time giữa mọi
+  người đang mở cùng `?room=...` này, kể cả khi họ ở 2 máy khác nhau qua
+  Internet thật (không chỉ localhost), vì dữ liệu được đồng bộ qua server
+  của playhtml.fun chứ không qua máy bạn.
+- `playhtml.users` dùng để biết ai đang có mặt trong phòng và tự dọn chỗ
+  ngồi (P1/P2) khi một người rời đi.
+- Luật chơi (di chuyển, ăn quân, thắng/thua) vẫn được kiểm tra bằng đúng
+  `shared/gameLogic.js` — không viết lại luật riêng cho bản playhtml.
+
+> ⚠️ Vì playhtml.fun đồng bộ real-time kiểu client tự ghi state (không có
+> server riêng của nhóm đứng ra "trọng tài"), nếu 2 người bấm gần như cùng
+> lúc có thể hiếm khi bị lệch 1 nhịp — đây là giới hạn cố hữu của mô hình
+> playhtml (đổi lại là không cần tự host server). Bản `server/` bên dưới có
+> server riêng "trọng tài" mọi nước đi nên không gặp vấn đề này, nếu môn
+> học yêu cầu độ chặt chẽ cao hơn thì dùng bản đó.
+
+## Bài 2 (phương án dự phòng) — Server Node.js tự host
 
 ```bash
 cd server
@@ -127,21 +167,34 @@ http://localhost:8080/?room=nhom5
 
 ## Deploy lên Vercel (phần tĩnh) + Render/Railway (server WebSocket)
 
-### Vì sao phải tách 2 nơi?
+> **Chế độ khuyến nghị: `/playhtml/` — không cần backend.**
+> Vì bài 2 (chính thức) đồng bộ qua dịch vụ công cộng của playhtml.fun, phần
+> `/playhtml/` **không cần `WS_URL` và không cần server riêng**. Chỉ khi muốn chạy
+> `/multiplayer/` (server WebSocket tự host) mới cần Render/Railway như bên dưới.
+
+### Ba chế độ sau khi deploy
+
+| Đường dẫn       | Cần thêm gì                            |
+| --------------- | -------------------------------------- |
+| `/local/`       | Không. Hotseat 2 người cùng một máy.   |
+| `/playhtml/`    | Không. Chỉ cần người chơi có Internet. |
+| `/multiplayer/` | Cần `WS_URL` trỏ tới server WebSocket. |
+
+### Vì sao `/multiplayer/` phải tách 2 nơi?
 
 Vercel chỉ host **file tĩnh** và **function ngắn hạn (serverless)**. Server trong
 `server/server.js` là một process Node **chạy liên tục**, giữ trạng thái phòng
 trong RAM (`Map`) và cần giữ kết nối WebSocket mở — những thứ serverless không
 làm được. Vì vậy:
 
-| Phần             | Nơi deploy                 | Nội dung                                                                                                |
-| ---------------- | -------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Web tĩnh         | **Vercel**                 | `/` (trang chủ), `/local/` (2 người cùng máy), `/multiplayer/` (UI multiplayer), `/shared/` (luật chơi) |
-| Server WebSocket | **Render / Railway / VPS** | `server/server.js` — Express + `ws`, giữ phòng trong RAM                                                |
+| Phần             | Nơi deploy                 | Nội dung                                                                                              |
+| ---------------- | -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Web tĩnh         | **Vercel**                 | `/` (trang chủ), `/local/`, `/playhtml/` (chính thức, không cần backend), `/multiplayer/`, `/shared/` |
+| Server WebSocket | **Render / Railway / VPS** | `server/server.js` — Express + `ws`, giữ phòng trong RAM (chỉ cần cho `/multiplayer/`)                |
 
-Client multiplayer biết địa chỉ server qua biến **`WS_URL`**, được nhúng vào
-`runtime-config.js` **lúc build**. Nếu `WS_URL` trống, client tự dùng
-same-origin (đúng cho lúc chạy local).
+Client của `/multiplayer/` biết địa chỉ server qua biến **`WS_URL`**, được nhúng vào
+`runtime-config.js` **lúc build**. Nếu `WS_URL` trống, client tự dùng same-origin
+(đúng cho lúc chạy local). **`/playhtml/` không liên quan tới biến này.**
 
 ### Cấu trúc `dist/` mà Vercel phục vụ
 
@@ -151,14 +204,15 @@ same-origin (đúng cho lúc chạy local).
 dist/
 ├── index.html            # trang chủ chọn chế độ chơi
 ├── local/                # từ local/
-├── multiplayer/          # từ server/public/ (+ runtime-config.js sinh ra)
+├── playhtml/             # từ playhtml/       (bài 2 chính thức, không cần backend)
+├── multiplayer/          # từ server/public/  (+ runtime-config.js sinh ra)
 └── shared/gameLogic.js   # từ shared/
 ```
 
 Cây này là bắt buộc vì có **2 kiểu đường dẫn import** khác nhau:
-`local/game.js` dùng `../shared/gameLogic.js` (cần `local/` và `shared/` là anh em
-ruột), còn `multiplayer/client.js` dùng `/shared/gameLogic.js` (cần `shared/` nằm
-ngay gốc site).
+`local/game.js` và `playhtml/app.js` đều dùng `../shared/gameLogic.js` (cần chúng là
+anh em ruột với `shared/`), còn `multiplayer/client.js` dùng `/shared/gameLogic.js`
+(cần `shared/` nằm ngay gốc site).
 
 ### Bước 1 — Deploy server WebSocket (làm trước để có URL)
 
@@ -186,19 +240,30 @@ ngay gốc site).
 2. Framework Preset: **Other**. Không cần đổi build/output vì `vercel.json` đã
    khai báo `buildCommand: node scripts/build-static.mjs` và
    `outputDirectory: dist`.
-3. **Settings → Environment Variables**, thêm cho cả **Production** và **Preview**:
+3. **(Tuỳ chọn — chỉ cần cho `/multiplayer/`)** **Settings → Environment Variables**,
+   thêm cho cả **Production** và **Preview**:
     - Key: `WS_URL`
     - Value: URL server ở Bước 1, ví dụ `https://ottv2-ws-server.onrender.com`
+      Nếu chỉ dùng `/local/` và `/playhtml/` thì **bỏ qua bước này** — không cần biến nào.
 4. **Deploy**. Vì `WS_URL` là biến **build-time**, mỗi lần đổi giá trị phải
    **Redeploy** (đừng bật "Use existing build cache") để `runtime-config.js`
    được sinh lại.
 5. Mở thử:
     - `https://<domain>.vercel.app/local/` — 2 người cùng máy, không cần server.
-    - `https://<domain>.vercel.app/multiplayer/?room=nhom5` — mở 2 tab / 2 máy
-      cùng `?room=nhom5` để làm 2 đối thủ, người thứ 3 là khán giả.
+    - `https://<domain>.vercel.app/playhtml/?room=nhom5` — **chế độ chính thức**:
+      mở 2 tab / 2 máy cùng `?room=nhom5` là 2 đối thủ, người thứ 3 là khán giả.
+      Không cần cấu hình gì thêm.
+    - `https://<domain>.vercel.app/multiplayer/?room=nhom5` — chỉ dùng khi đã set
+      `WS_URL` và đã deploy server WebSocket.
 
-> Nếu thanh trạng thái hiện "chưa cấu hình WS_URL", tức là biến `WS_URL` chưa
-> được set (hoặc chưa redeploy) nên client đang thử kết nối same-origin.
+> playhtml phân tách dữ liệu theo **hostname**, nên hai người chơi phải mở **đúng
+> cùng một hostname**. Đừng để một người dùng link preview của Vercel còn người kia
+> dùng domain production — họ sẽ vào hai phòng khác nhau dù mã phòng giống nhau.
+> Nên thống nhất dùng domain production, hoặc gắn domain riêng rồi gửi đúng link đó.
+
+> `/playhtml/` **không** đọc biến `WS_URL`. Nếu `/multiplayer/` hiện "chưa cấu hình
+> WS_URL", tức là biến `WS_URL` chưa được set (hoặc chưa redeploy) nên client đang
+> thử kết nối same-origin — điều này không ảnh hưởng gì tới `/playhtml/`.
 
 ### Kiểm tra trước khi push
 
