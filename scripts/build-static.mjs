@@ -16,6 +16,10 @@
  *   │   ├── index.html
  *   │   ├── style.css
  *   │   └── game.js
+ *   ├── playhtml/                     # từ  playhtml/         (CHÍNH THỨC, không cần backend)
+ *   │   ├── index.html
+ *   │   ├── style.css
+ *   │   └── app.js
  *   ├── multiplayer/                  # từ  server/public/    (UI + WS client)
  *   │   ├── index.html
  *   │   ├── style.css
@@ -25,10 +29,18 @@
  *       └── gameLogic.js              # từ  shared/           (luật chơi)
  *
  * Vì sao phải giữ đúng cây này:
- *   - local/game.js      import '../shared/gameLogic.js'  -> cần local/ và
+ *   - local/game.js        import '../shared/gameLogic.js' -> cần local/ và
  *     shared/ là anh em ruột cùng cấp trong dist/.
+ *   - playhtml/app.js      import '../shared/gameLogic.js' -> cũng cần
+ *     playhtml/ là anh em ruột với shared/ trong dist/.
  *   - multiplayer/client.js import '/shared/gameLogic.js' (đường dẫn tuyệt
  *     đối) -> cần shared/ nằm ngay gốc dist/.
+ *
+ * Ba chế độ sau khi deploy:
+ *   /local/       hotseat, không cần gì thêm.
+ *   /playhtml/    multiplayer qua dịch vụ công cộng của playhtml.fun
+ *                 -> KHÔNG cần backend, KHÔNG cần WS_URL.
+ *   /multiplayer/ multiplayer qua server WebSocket tự host -> cần WS_URL.
  *
  * Biến môi trường:
  *   WS_URL  (build-time, set trong Vercel Project Settings) - ví dụ:
@@ -52,6 +64,7 @@ const WS_URL = (process.env.WS_URL || "").trim();
 /** Các cặp [nguồn, đích] cần copy vào dist/. */
 const COPY_MAP = [
     ["local", "local"],
+    ["playhtml", "playhtml"],
     ["server/public", "multiplayer"],
     ["shared", "shared"],
 ];
@@ -77,7 +90,7 @@ window.__OTT_CONFIG__ = {
 function landingPage() {
     const wsHint = WS_URL
         ? ""
-        : "\n      <br />\u26a0\ufe0f Ch\u01b0a c\u1ea5u h\u00ecnh <code>WS_URL</code> - trang Nhi\u1ec1u ng\u01b0\u1eddi qua m\u1ea1ng s\u1ebd th\u1eed k\u1ebft n\u1ed1i same-origin.";
+        : "\n      <br />\u26a0\ufe0f Ch\u01b0a c\u1ea5u h\u00ecnh <code>WS_URL</code> \u2014 ch\u1ec9 \u1ea3nh h\u01b0\u1edfng ch\u1ebf \u0111\u1ed9 WebSocket \u1edf <code>/multiplayer/</code>. Ch\u1ebf \u0111\u1ed9 <code>/playhtml/</code> kh\u00f4ng c\u1ea7n WS_URL.";
 
     return `<!DOCTYPE html>
 <html lang="vi">
@@ -107,6 +120,9 @@ function landingPage() {
   a.mode .icon { font-size: 2rem; display: block; margin-bottom: 10px; }
   a.mode .title { font-weight: 700; font-size: 1.05rem; display: block; margin-bottom: 6px; }
   a.mode .desc { font-size: .875rem; color: #93a1b6; line-height: 1.5; display: block; }
+  a.mode.tip { border-color: #d4af37; }
+  a.mode .badge { display: inline-block; margin-left: 7px; padding: 1px 8px; border-radius: 999px; background: #d4af37; color: #1b2430; font-size: .66rem; font-weight: 700; vertical-align: middle; text-transform: uppercase; letter-spacing: .02em; }
+  a.mode .desc code { background: #1e293b; padding: 0 4px; border-radius: 3px; }
   footer { margin-top: 30px; font-size: .8rem; color: #64748b; line-height: 1.7; }
   code { background: #1e293b; padding: 1px 5px; border-radius: 4px; }
 </style>
@@ -121,13 +137,18 @@ function landingPage() {
         <span class="title">2 ng\u01b0\u1eddi c\u00f9ng m\u00e1y</span>
         <span class="desc">B\u1ea3n hotseat, kh\u00f4ng c\u1ea7n server. Hai ng\u01b0\u1eddi thay phi\u00ean \u0111i tr\u00ean c\u00f9ng m\u1ed9t m\u00e0n h\u00ecnh.</span>
       </a>
+      <a class="mode tip" href="./playhtml/">
+        <span class="icon">\u2728</span>
+        <span class="title">Nhi\u1ec1u ng\u01b0\u1eddi qua m\u1ea1ng<span class="badge">\u0111\u1ec1 xu\u1ea5t</span></span>
+        <span class="desc">\u0110\u1ed3ng b\u1ed9 real-time b\u1eb1ng playhtml.fun \u2014 kh\u00f4ng c\u1ea7n backend, kh\u00f4ng c\u1ea7n c\u1ea5u h\u00ecnh g\u00ec th\u00eam.</span>
+      </a>
       <a class="mode" href="./multiplayer/">
-        <span class="icon">\ud83c\udf10</span>
-        <span class="title">Nhi\u1ec1u ng\u01b0\u1eddi qua m\u1ea1ng</span>
-        <span class="desc">V\u00e0o ph\u00f2ng b\u1eb1ng WebSocket \u0111\u1ec3 \u0111\u1ea5u v\u1edbi ng\u01b0\u1eddi ch\u01a1i kh\u00e1c, ho\u1eb7c v\u00e0o xem v\u1edbi vai tr\u00f2 kh\u00e1n gi\u1ea3.</span>
+        <span class="icon">\ud83d\udd0c</span>
+        <span class="title">WebSocket t\u1ef1 host</span>
+        <span class="desc">C\u1ea7n server Node ri\u00eang (Render / Railway) v\u00e0 bi\u1ebfn <code>WS_URL</code>. Server t\u1ef1 tr\u1ecdng t\u00e0i m\u1ecdi n\u01b0\u1edbc \u0111i.</span>
       </a>
     </div>
-    <footer>Deploy t\u0129nh tr\u00ean Vercel \u00b7 Server WebSocket ch\u1ea1y ri\u00eang (Render / Railway)${wsHint}</footer>
+    <footer>Deploy t\u0129nh tr\u00ean Vercel \u00b7 <code>/playhtml/</code> ch\u1ea1y ngay kh\u00f4ng c\u1ea7n backend \u00b7 <code>/multiplayer/</code> c\u1ea7n server WebSocket ri\u00eang${wsHint}</footer>
   </main>
 </body>
 </html>

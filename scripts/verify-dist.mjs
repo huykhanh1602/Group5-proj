@@ -70,6 +70,9 @@ async function main() {
         "local/index.html",
         "local/style.css",
         "local/game.js",
+        "playhtml/index.html",
+        "playhtml/style.css",
+        "playhtml/app.js",
         "multiplayer/index.html",
         "multiplayer/style.css",
         "multiplayer/client.js",
@@ -84,6 +87,10 @@ async function main() {
     // --- Đường dẫn import giữa các thư mục (điểm dễ vỡ nhất) ---------------
     for (const spec of await readImports("local/game.js")) {
         if (spec.startsWith(".") || spec.startsWith("/")) await checkImport("local/game.js", spec);
+    }
+    for (const spec of await readImports("playhtml/app.js")) {
+        if (spec.startsWith(".") || spec.startsWith("/"))
+            await checkImport("playhtml/app.js", spec);
     }
     for (const spec of await readImports("multiplayer/client.js")) {
         if (spec.startsWith(".") || spec.startsWith("/"))
@@ -113,11 +120,13 @@ async function main() {
         wsLine ? `wsUrl: ${wsLine[1].trim()}` : "",
     );
 
-    // --- Trang chủ trỏ tới cả 2 chế độ ------------------------------------
+    // --- Trang chủ trỏ tới cả 3 chế độ ------------------------------------
     const home = await readFile(path.join(DIST, "index.html"), "utf8");
     check(
-        "index.html c\u00f3 link t\u1edbi ./local/ v\u00e0 ./multiplayer/",
-        home.includes("./local/") && home.includes("./multiplayer/"),
+        "index.html c\u00f3 link t\u1edbi ./local/, ./playhtml/ v\u00e0 ./multiplayer/",
+        home.includes("./local/") &&
+            home.includes("./playhtml/") &&
+            home.includes("./multiplayer/"),
     );
 
     const failed = results.filter((r) => !r.ok);
