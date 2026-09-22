@@ -290,3 +290,24 @@ button.reset:hover { filter: brightness(1.1); }
 .role-badge.P1 { color: var(--p1); border-color: var(--p1); }
 .role-badge.P2 { color: var(--p2); border-color: var(--p2); }
 .role-badge.spectator { color: var(--muted); }
+
+.back-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  z-index: 100;
+}
+
+.back-btn:hover {
+  background: var(--panel-2);
+  border-color: var(--muted);
+}
