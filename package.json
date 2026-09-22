@@ -1,7 +1,14 @@
 {
-  "name": "playhtml-fun-ottv2",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": { "start": "node server.mjs", "test": "node --test" }
+    "name": "playhtml-fun-ottv2",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "start": "node server.mjs",
+        "test": "node --test"
+    }
 }
